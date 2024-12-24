@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Stock Data</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            display: flex;
+            font-family: Arial, sans-serif;
+        }
+        .sidebar {
+            width: 20%;
+            padding: 10px;
+            border-right: 1px solid #ccc;
+        }
+        .content {
+            width: 80%;
+            padding: 10px;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            margin: 10px 0;
+        }
+        button {
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            padding: 8px 12px;
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+        }
+        button:hover {
+            background-color: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar with List of Companies -->
+    <div class="sidebar">
+        <h3>Companies</h3>
+        <ul>
+            {% for company in companies %}
+                <li>
+                    <button class="company-btn" data-company="{{ company }}">{{ company }}</button>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Content Section with Chart -->
+    <div class="content">
+        <canvas id="stockChart"></canvas>
+    </div>
+
+    <!-- JavaScript for Dynamic Chart Update -->
+    <script>
+        // Prepare Chart.js
+        const ctx = document.getElementById('stockChart').getContext('2d');
+        const stockChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [], // Placeholder for dates
+                datasets: [{
+                    label: 'Stock Price',
+                    data: [], // Placeholder for stock data
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1,
+                    fill: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { title: { display: true, text: 'Date' } },
+                    y: { title: { display: true, text: 'Price' } }
+                }
+            }
+        });
+
+        
+        const data = {{ data|safe }}; // Safely load the data dictionary
+
+        // Event Listener for Company Buttons
+        document.querySelectorAll('.company-btn').forEach(button => {
+            button.addEventListener('click', event => {
+                const company = event.target.dataset.company;
+
+                // Filter data for the selected company
+                const companyData = data[company];
+                const dates = companyData.map(row => row.Date);
+                const closingPrices = companyData.map(row => parseFloat(row.Close));
+
+                // Update the Chart.js chart
+                stockChart.data.labels = dates;
+                stockChart.data.datasets[0].data = closingPrices;
+                stockChart.data.datasets[0].label = company;
+                stockChart.update();
+            });
+        });
+    </script>
+</body>
+</html>
